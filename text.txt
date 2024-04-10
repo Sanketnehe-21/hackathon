@@ -1,0 +1,75 @@
+<form action="" method="post">
+                                    <input type="hidden" name="name" value="<?php echo $row['name']; ?>">
+                                    <button type="submit" name="approve" class="btn btn-success">Approve</button>
+                                    <button type="submit" name="reject" class="btn btn-danger">Reject</button>
+                                </form>
+
+                                if(isset($_POST['approve'])) {
+        $name = mysqli_real_escape_string($conn, $_POST['name']);
+        $sql = "UPDATE form1 SET status = 1 WHERE name = '$name'";
+        if(mysqli_query($conn, $sql)) {
+            $msg = "<div class='alert alert-success'>Approval status updated successfully.</div>";
+        } else {
+            $msg = "<div class='alert alert-danger'>Error updating approval status: " . mysqli_error($conn) . "</div>";
+        }
+    }
+
+    if(isset($_POST['reject'])) {
+        $name = mysqli_real_escape_string($conn, $_POST['name']);
+        $sql = "UPDATE form1 SET status = 0 WHERE name = '$name'";
+        if(mysqli_query($conn, $sql)) {
+            $msg = "<div class='alert alert-success'>Rejection status updated successfully.</div>";
+        } else {
+            $msg = "<div class='alert alert-danger'>Error updating rejection status: " . mysqli_error($conn) . "</div>";
+        }
+    }
+
+
+
+
+
+    <?php
+include 'config.php';
+
+session_start();
+
+$msg = "";
+
+// Vote
+if (isset($_POST['vote']) && isset($_SESSION['user_email'])) {
+    $email = mysqli_real_escape_string($conn, $_SESSION['user_email']);
+    $vote = mysqli_real_escape_string($conn, $_POST['vote']);
+
+    // Check if user has already voted
+    $sql = "SELECT * FROM form1 WHERE email='{$email}'";
+    $result = mysqli_query($conn, $sql);
+
+    if ($result && mysqli_num_rows($result) === 1) {
+        $row = mysqli_fetch_assoc($result);
+        if ($row['voted'] == 0) {
+            // Increment vote count based on selection
+            if ($vote == 'yes') {
+                $sql_update = "UPDATE form1 SET yes_count = yes_count + 1, voted = 1 WHERE email='{$email}'";
+            } else {
+                $sql_update = "UPDATE form1 SET no_count = no_count + 1, voted = 1 WHERE email='{$email}'";
+            }
+            mysqli_query($conn, $sql_update);
+            $msg = "<div class='alert alert-success'>Vote submitted successfully!</div>";
+        } else {
+            $msg = "<div class='alert alert-danger'>You have already voted!</div>";
+        }
+    } else {
+        $msg = "<div class='alert alert-danger'>User not found!</div>";
+    }
+}
+
+// Calculate total votes and percentages
+$sql_total = "SELECT SUM(yes_count) AS total_yes, SUM(no_count) AS total_no FROM form1";
+$result_total = mysqli_query($conn, $sql_total);
+$row_total = mysqli_fetch_assoc($result_total);
+$total_yes = $row_total['total_yes'];
+$total_no = $row_total['total_no'];
+$total_votes = $total_yes + $total_no;
+$percentage_yes = ($total_votes > 0) ? ($total_yes / $total_votes) * 100 : 0;
+$percentage_no = ($total_votes > 0) ? ($total_no / $total_votes) * 100 : 0;
+?>
