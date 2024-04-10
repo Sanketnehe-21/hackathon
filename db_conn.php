@@ -1,8 +1,8 @@
 <?php  
 
-$sname = "localhost";
-$uname = "root";
-$password = "";
+$sname = "phpweb.cefkjzu19slj.us-east-1.rds.amazonaws.com";
+$uname = "admin";
+$password = "12345678";
 
 $db_name = "education";
 
